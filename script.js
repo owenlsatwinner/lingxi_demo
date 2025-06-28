@@ -3,7 +3,9 @@ class ChatApp {
         this.init();
         this.setupEventListeners();
         this.setupVoiceRecognition();
+        this.setupDemoTabs();
         this.messages = [];
+        this.currentDemo = 'demo1'; // 当前选中的演示模式
     }
 
     init() {
@@ -85,6 +87,62 @@ class ChatApp {
         }
     }
 
+    setupDemoTabs() {
+        // 获取tab按钮元素
+        this.tabButtons = document.querySelectorAll('.tab-btn');
+        
+        // 为每个tab按钮添加点击事件
+        this.tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const demoType = button.getAttribute('data-demo');
+                this.switchDemo(demoType);
+            });
+        });
+    }
+
+    switchDemo(demoType) {
+        // 更新当前演示模式
+        this.currentDemo = demoType;
+        
+        // 更新tab按钮状态
+        this.tabButtons.forEach(button => {
+            button.classList.remove('active');
+            if (button.getAttribute('data-demo') === demoType) {
+                button.classList.add('active');
+            }
+        });
+        
+        // 清空对话历史，重新开始新的演示
+        this.clearChat(true);
+        
+        // 根据不同演示模式显示不同的欢迎消息
+        this.showWelcomeMessage(demoType);
+    }
+
+    showWelcomeMessage(demoType) {
+        let welcomeText = '';
+        if (demoType === 'demo1') {
+            welcomeText = '你好！这里是销转A模式，我可以帮您处理客户咨询和产品问题。有什么可以帮助您的吗？';
+        } else if (demoType === 'demo2') {
+            welcomeText = '你好！这里是销转B模式，我专门负责销售数据分析和业务洞察。请问您想了解哪方面的分析？';
+        }
+        
+        // 添加欢迎消息
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = 'welcome-message';
+        welcomeDiv.innerHTML = `
+            <div class="ai-avatar">
+                👩‍💼
+            </div>
+            <div class="message-content">
+                <p>${welcomeText}</p>
+            </div>
+        `;
+        
+        this.chatMessages.appendChild(welcomeDiv);
+        this.scrollToBottom();
+    }
+
     toggleVoiceRecognition() {
         if (!this.recognition) {
             this.showError('您的浏览器不支持语音识别功能');
@@ -142,17 +200,24 @@ class ChatApp {
 
     async callAIAPI(message) {
         // ===========================================
-        // API配置区域 - 请根据你的后端API修改以下内容
+        // API配置区域 - 根据不同演示模式使用不同的API配置
         // ===========================================
         
-        // 1. 修改为你的实际API地址
-        const API_URL = 'https://your-api-endpoint.com/chat';
-        // 示例：
-        // const API_URL = 'http://localhost:3000/api/chat';  // 本地开发
-        // const API_URL = 'https://api.yourdomain.com/v1/chat';  // 生产环境
+        let API_URL, API_KEY;
         
-        // 2. 如果需要API密钥，在这里填入
-        const API_KEY = 'your-api-key-here';  // 替换为你的实际API密钥
+        if (this.currentDemo === 'demo1') {
+            // 智能客服演示配置
+            API_URL = 'https://your-customer-service-api.com/chat';
+            API_KEY = 'your-customer-service-api-key';
+            // 示例：
+            // API_URL = 'http://localhost:3001/api/customer-chat';
+        } else if (this.currentDemo === 'demo2') {
+            // 销售分析演示配置
+            API_URL = 'https://your-sales-analysis-api.com/analyze';
+            API_KEY = 'your-sales-analysis-api-key';
+            // 示例：
+            // API_URL = 'http://localhost:3002/api/sales-analysis';
+        }
         
         // 将新消息添加到对话历史
         this.messages.push({ role: 'user', content: message });
@@ -242,19 +307,45 @@ class ChatApp {
 
     // 开发阶段的模拟回复
     getMockResponse(message) {
-        const mockResponses = [
-            '这是一个模拟的AI回复。实际使用时，请配置正确的API端点。',
-            '我理解了您的问题。这里是一个示例回答。',
-            '感谢您的提问！在实际部署时，我将连接到真正的AI服务。',
-            '这是一个演示回复。请在script.js中配置您的API端点。'
-        ];
-        
-        // 根据消息内容返回不同回复
-        if (message.includes('你好') || message.includes('您好')) {
-            return '您好！很高兴为您服务。有什么可以帮助您的吗？';
+        // 根据不同演示模式返回不同的模拟回复
+        if (this.currentDemo === 'demo1') {
+            // 智能客服模拟回复
+            const customerServiceResponses = {
+                '你好': '您好！欢迎咨询灵犀智能客服。我可以帮您解答产品问题、处理售后问题或提供技术支持。请问有什么可以帮助您的吗？',
+                '产品': '我们的产品线包括智能销售系统、客户管理平台和数据分析工具。每款产品都采用了最新的AI技术，可以显著提高您的业务效率。您对哪个产品特别感兴趣呢？',
+                '价格': '我们提供灵活的价格方案，包括基础版、专业版和企业版。具体价格会根据您的使用需求和规模来定制。建议您联系我们的销售顾问获取详细报价。',
+                '售后': '我们提供7x24小时在线支持，包括电话、邮件和在线聊天。还有专业的技术团队可以帮您解决任何技术问题。请问您遇到了什么问题吗？'
+            };
+            
+            // 检查是否匹配关键词
+            for (const [keyword, response] of Object.entries(customerServiceResponses)) {
+                if (message.includes(keyword)) {
+                    return response;
+                }
+            }
+            
+            return '感谢您的咨询！作为智能客服，我可以帮您解答产品、价格、售后等问题。请您描述一下具体需要帮助的地方。';
+            
+        } else if (this.currentDemo === 'demo2') {
+            // 销售分析模拟回复
+            const salesAnalysisResponses = {
+                '销售': '根据最新的销售数据分析，本月销售额较上月增长15.3%。主要增长来源于东部地区和新产品线。需要我提供更详细的分析吗？',
+                '客户': '客户分析显示，高价值客户的留存率达到85%，并且平均每客价值提升了12%。建议加大对中高端客户的营销投入。',
+                '趋势': '数据预测显示，未朆30天销售趋势将保持上升，预计增长率10-15%。建议适当增加库存和销售人员配置。',
+                '报表': '我可以为您生成详细的销售报表，包括时间趋势、地区分布、产品性能和客户分析。请问您需要哪个时间段的报表？'
+            };
+            
+            // 检查是否匹配关键词
+            for (const [keyword, response] of Object.entries(salesAnalysisResponses)) {
+                if (message.includes(keyword)) {
+                    return response;
+                }
+            }
+            
+            return '您好！我是销售分析AI，可以帮您分析销售数据、客户趋势和市场表现。请问您想了解哪方面的分析？';
         }
         
-        return mockResponses[Math.floor(Math.random() * mockResponses.length)];
+        return '这是一个演示回复。请选择上方的tab来体验不同的AI功能。';
     }
 
     addMessage(content, sender) {
@@ -263,7 +354,7 @@ class ChatApp {
         
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
-        avatarDiv.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        avatarDiv.innerHTML = sender === 'user' ? '👤' : '👩‍💼';
         
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
@@ -275,32 +366,23 @@ class ChatApp {
         this.chatMessages.appendChild(messageDiv);
     }
 
-    clearChat() {
-        // 确认清空对话
-        if (confirm('确定要清空所有对话记录吗？')) {
-            // 清除所有消息，包括欢迎消息
-            this.chatMessages.innerHTML = '';
-            
-            // 重新添加欢迎消息
-            const welcomeDiv = document.createElement('div');
-            welcomeDiv.className = 'welcome-message';
-            welcomeDiv.innerHTML = `
-                <div class="ai-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <p>你好！我是灵犀销转AI，有什么可以帮助你的吗？</p>
-                </div>
-            `;
-            this.chatMessages.appendChild(welcomeDiv);
-            
-            // 清空对话历史
-            this.messages = [];
-            
-            // 滚动到顶部
-            this.chatMessages.scrollTop = 0;
-            
-            // 显示清空成功提示
+    clearChat(skipConfirm = false) {
+        // 如果不是tab切换触发，需要确认
+        if (!skipConfirm && !confirm('确定要清空所有对话记录吗？')) {
+            return;
+        }
+        
+        // 清除所有消息，包括欢迎消息
+        this.chatMessages.innerHTML = '';
+        
+        // 清空对话历史
+        this.messages = [];
+        
+        // 滚动到顶部
+        this.chatMessages.scrollTop = 0;
+        
+        // 如果不是tab切换，显示成功提示
+        if (!skipConfirm) {
             this.showSuccess('对话已清空');
         }
     }
