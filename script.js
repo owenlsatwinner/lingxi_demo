@@ -199,29 +199,16 @@ class ChatApp {
     }
 
     async callAIAPI(message) {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return this.getMockResponse(message);
-        }
+        // if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        //     return this.getMockResponse(message);
+        // }
         // ===========================================
         // API配置区域 - 根据不同演示模式使用不同的API配置
         // ===========================================
         
         let API_URL, API_KEY;
-        
-        if (this.currentDemo === 'demo1') {
-            // 智能客服演示配置
-            API_URL = 'http://115.190.130.45:8888/api/v1/chat/send';
-            API_KEY = 'your-customer-service-api-key';
-            // 示例：
-            // API_URL = 'http://localhost:3001/api/customer-chat';
-        } else if (this.currentDemo === 'demo2') {
-            // 销售分析演示配置
-            API_URL = 'https://your-sales-analysis-api.com/analyze';
-            API_KEY = 'your-sales-analysis-api-key';
-            // 示例：
-            // API_URL = 'http://localhost:3002/api/sales-analysis';
-        }
-        
+        API_URL = 'http://localhost:8888/api/v1/chat/send';
+        API_KEY = 'your-customer-service-api-key';
         // 将新消息添加到对话历史
         this.messages.push({ role: 'user', content: message });
 
