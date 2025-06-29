@@ -199,6 +199,9 @@ class ChatApp {
     }
 
     async callAIAPI(message) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return this.getMockResponse(message);
+        }
         // ===========================================
         // API配置区域 - 根据不同演示模式使用不同的API配置
         // ===========================================
@@ -318,7 +321,7 @@ class ChatApp {
             // 智能客服模拟回复
             const customerServiceResponses = {
                 '你好': '您好！欢迎咨询灵犀智能客服。我可以帮您解答产品问题、处理售后问题或提供技术支持。请问有什么可以帮助您的吗？',
-                '产品': '我们的产品线包括智能销售系统、客户管理平台和数据分析工具。每款产品都采用了最新的AI技术，可以显著提高您的业务效率。您对哪个产品特别感兴趣呢？',
+                '产品': '我们的产品线包括智能销售系统、客户管理平台和数据分析工具。每款产品都采用了最新的AI技术，可以显著提高您的业务效率。{#image#https://lf3-appstore-sign.oceancloudapi.com/ocean-cloud-tos/FileBizType.BIZ_BOT_DATASET/68629996258624_1750852150039196079_Yd8wTCuTNS.jpg?lk3s=61a3dea3&x-expires=1753772734&x-signature=DNbhL2PjpW7QmbyawrPt3%2BN0Cx0%3D}您对哪个产品特别感兴趣呢？',
                 '价格': '我们提供灵活的价格方案，包括基础版、专业版和企业版。具体价格会根据您的使用需求和规模来定制。建议您联系我们的销售顾问获取详细报价。',
                 '售后': '我们提供7x24小时在线支持，包括电话、邮件和在线聊天。还有专业的技术团队可以帮您解决任何技术问题。请问您遇到了什么问题吗？'
             };
@@ -330,7 +333,7 @@ class ChatApp {
                 }
             }
             
-            return '感谢您的咨询！作为智能客服，我可以帮您解答产品、价格、售后等问题。请您描述一下具体需要帮助的地方。';
+            return '感谢您的咨询！作为智能客服，我可以帮您解答产品、价格、售后等问题。请您描述一下具体需要帮助的地方。{#image#https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=产品展示}';
             
         } else if (this.currentDemo === 'demo2') {
             // 销售分析模拟回复
@@ -348,7 +351,7 @@ class ChatApp {
                 }
             }
             
-            return '您好！我是销售分析AI，可以帮您分析销售数据、客户趋势和市场表现。请问您想了解哪方面的分析？';
+            return '您好！我是销售分析AI，可以帮您分析销售数据、客户趋势和市场表现。请问您想了解哪方面的分析？{#image#https://via.placeholder.com/400x250/10B981/FFFFFF?text=销售数据图表}';
         }
         
         return '这是一个演示回复。请选择上方的tab来体验不同的AI功能。';
@@ -364,12 +367,51 @@ class ChatApp {
         
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = content;
+        
+        // 解析内容中的图片链接
+        const parsedContent = this.parseMessageContent(content);
+        contentDiv.innerHTML = parsedContent;
         
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(contentDiv);
         
         this.chatMessages.appendChild(messageDiv);
+    }
+
+    // 解析消息内容，提取图片链接并转换为HTML
+    parseMessageContent(content) {
+        // 使用正则表达式匹配 {#image#url} 格式的图片链接
+        const imageRegex = /\{#image#([^}]+)\}/g;
+        
+        // 先用特殊标记替换图片，避免HTML转义影响
+        const imageMatches = [];
+        let tempContent = content.replace(imageRegex, (match, imageUrl) => {
+            const placeholder = `__IMAGE_PLACEHOLDER_${imageMatches.length}__`;
+            imageMatches.push(imageUrl);
+            return placeholder;
+        });
+        
+        // 对文本内容进行HTML转义
+        tempContent = tempContent
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        
+        // 处理换行
+        tempContent = tempContent.replace(/\n/g, '<br>');
+        
+        // 将图片占位符替换为实际的图片HTML
+        imageMatches.forEach((imageUrl, index) => {
+            const placeholder = `__IMAGE_PLACEHOLDER_${index}__`;
+            const imageHtml = `<div class="message-image">
+                                <img src="${imageUrl}" alt="图片" onload="this.classList.add('loaded')" onerror="this.classList.add('error')" />
+                              </div>`;
+            tempContent = tempContent.replace(placeholder, imageHtml);
+        });
+        
+        return tempContent;
     }
 
     clearChat(skipConfirm = false) {
