@@ -207,7 +207,7 @@ class ChatApp {
         
         if (this.currentDemo === 'demo1') {
             // 智能客服演示配置
-            API_URL = 'https://your-customer-service-api.com/chat';
+            API_URL = 'http://115.190.130.45:8888/api/v1/chat/send';
             API_KEY = 'your-customer-service-api-key';
             // 示例：
             // API_URL = 'http://localhost:3001/api/customer-chat';
@@ -228,7 +228,7 @@ class ChatApp {
                 headers: {
                     'Content-Type': 'application/json',
                     // 根据你的API认证方式选择其中一种：
-                    'Authorization': `Bearer ${API_KEY}`,  // Bearer Token方式
+                    // 'Authorization': `Bearer ${API_KEY}`,  // Bearer Token方式
                     // 'X-API-Key': API_KEY,                 // API Key方式
                     // 'Authorization': `Basic ${btoa('username:password')}`,  // Basic Auth方式
                 },
@@ -236,12 +236,14 @@ class ChatApp {
                     // ===========================================
                     // 请求格式 - 根据你的API要求选择其中一种格式
                     // ===========================================
-                    
+                    "user_input":  message,
+                    "user_unique_id": "test_user_1"
+
                     // 格式1: OpenAI风格
-                    messages: this.messages,
-                    model: 'gpt-3.5-turbo',
-                    temperature: 0.7,
-                    max_tokens: 1000,
+                    // messages: this.messages,
+                    // model: 'gpt-3.5-turbo',
+                    // temperature: 0.7,
+                    // max_tokens: 1000,
                     
                     // 格式2: 自定义风格（取消注释并删除上面的格式1）
                     // message: message,
@@ -266,28 +268,32 @@ class ChatApp {
             // ===========================================
             
             let aiResponse;
-            
-            // 格式1: OpenAI风格响应 { "choices": [{ "message": { "content": "回复" } }] }
-            if (data.choices && data.choices[0]?.message?.content) {
-                aiResponse = data.choices[0].message.content;
-            }
-            // 格式2: 简单响应 { "response": "回复" }
-            else if (data.response) {
-                aiResponse = data.response;
-            }
-            // 格式3: 嵌套响应 { "data": { "reply": "回复" } }
-            else if (data.data?.reply) {
-                aiResponse = data.data.reply;
-            }
-            // 格式4: 直接字符串响应 "回复内容"
-            else if (typeof data === 'string') {
-                aiResponse = data;
-            }
-            // 默认错误处理
-            else {
+
+            if (data.code === 0 && data.data) {
+                aiResponse = data.data.output;
+            } else {
                 console.warn('未识别的API响应格式:', data);
                 aiResponse = '抱歉，我没有理解您的问题。';
             }
+
+            // 格式1: OpenAI风格响应 { "choices": [{ "message": { "content": "回复" } }] }
+            // if (data.choices && data.choices[0]?.message?.content) {
+            //     aiResponse = data.choices[0].message.content;
+            // }
+            // // 格式2: 简单响应 { "response": "回复" }
+            // else if (data.response) {
+            //     aiResponse = data.response;
+            // }
+            // // 格式3: 嵌套响应 { "data": { "reply": "回复" } }
+            // else if (data.data?.reply) {
+            //     aiResponse = data.data.reply;
+            // }
+            // // 格式4: 直接字符串响应 "回复内容"
+            // else if (typeof data === 'string') {
+            //     aiResponse = data;
+            // }
+            // 默认错误处理
+
             
             // 将AI回复添加到对话历史
             this.messages.push({ role: 'assistant', content: aiResponse });
