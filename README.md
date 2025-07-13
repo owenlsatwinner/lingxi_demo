@@ -276,3 +276,48 @@ app.use((req, res, next) => {
 ## 许可证
 
 MIT License - 可自由使用和修改。
+
+
+[Unit]
+Description=Lingxi Demo Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/lingxi_demo
+ExecStart=/usr/local/bin/npx serve -l 3000 .
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+---
+[Unit]
+Description=灵犀销转AI演示应用
+Documentation=https://github.com/yourusername/lingxi_demo
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=nginx
+Group=nginx
+WorkingDirectory=/var/www/lingxi_demo
+ExecStartPre=/usr/sbin/nginx -t
+ExecStart=/usr/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+KillMode=mixed
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

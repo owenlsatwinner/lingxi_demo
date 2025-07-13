@@ -207,7 +207,7 @@ class ChatApp {
         // ===========================================
         
         let API_URL, API_KEY;
-        API_URL = 'http://115.190.130.45:8888/api/v1/chat/send';
+        API_URL = 'http://localhost:8888/api/v1/chat/send';
         API_KEY = 'your-customer-service-api-key';
         // 将新消息添加到对话历史
         this.messages.push({ role: 'user', content: message });
