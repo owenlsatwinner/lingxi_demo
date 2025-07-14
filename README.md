@@ -125,7 +125,7 @@ chmod +x start.sh
 
 ```javascript
 // 修改API地址
-API_URL = 'http://localhost:8888/api/v1/chat/send';
+API_URL = 'http://47.96.0.37:8888/api/v1/chat/send';
 ```
 
 ## 🚀 生产部署
@@ -166,3 +166,4 @@ ISC License
 ## 🤝 贡献
 
 欢迎提交Issue和Pull Request来改进这个项目。
+```nohup npx serve -l 35786 . > serve.log 2>&1 &```
